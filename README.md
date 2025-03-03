@@ -1,2 +1,2 @@
 # clone-tabnews
-Uma imlementação de um clone do tabnews
+Uma implementação de um clone do tabnews
