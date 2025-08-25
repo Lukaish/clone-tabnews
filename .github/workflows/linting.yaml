@@ -13,6 +13,6 @@ jobs:
         with:
           node-version: "lts/iron"
 
-      - run: npm ci 
+      - run: npm ci
 
       - run: npm run lint:prettier:check
