@@ -1,0 +1,48 @@
+#!/bin/sh
+
+echo "🔍 Verificando por segredos no commit..."
+
+# Arquivos staged para commit
+FILES=$(git diff --cached --name-only)
+
+EXIT_CODE=0
+
+for FILE in $FILES; do
+  # Ignora arquivos binários
+  if file "$FILE" | grep -qE 'binary'; then
+    continue
+  fi
+
+  # Verifica padrões comuns
+  if grep -En "AKIA[0-9A-Z]{16}" "$FILE" > /dev/null 2>&1; then
+    echo "❌ Segredo AWS Access Key detectado em $FILE"
+    EXIT_CODE=1
+  fi
+
+  if grep -En "AIza[0-9A-Za-z-_]{35}" "$FILE" > /dev/null 2>&1; then
+    echo "❌ Segredo Google API Key detectado em $FILE"
+    EXIT_CODE=1
+  fi
+
+  if grep -En "xox[baprs]-[0-9a-zA-Z]{10,}" "$FILE" > /dev/null 2>&1; then
+    echo "❌ Token Slack detectado em $FILE"
+    EXIT_CODE=1
+  fi
+
+  if grep -En "-----BEGIN PRIVATE KEY-----" "$FILE" > /dev/null 2>&1; then
+    echo "❌ Chave privada detectada em $FILE"
+    EXIT_CODE=1
+  fi
+
+  if grep -En "ghp_[0-9A-Za-z]{36}" "$FILE" > /dev/null 2>&1; then
+    echo "❌ GitHub Token detectado em $FILE"
+    EXIT_CODE=1
+  fi
+done
+
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "🚫 Commit bloqueado. Remova os segredos antes de commitar."
+  exit 1
+fi
+
+exit 0
